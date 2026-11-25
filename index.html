@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vista de documento</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+
   <style>
     :root {
       --fondo-pagina: #eceef1;
@@ -19,19 +21,18 @@
 
     html, body {
       width: 100%;
-      min-height: 100dvh;
+      min-height: 100vh;
       background-color: var(--fondo-pagina);
       font-family: system-ui, -apple-system, sans-serif;
       overflow-x: hidden;
-      overflow-y: auto;
     }
 
     body {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
-      padding: 64px 16px 32px 16px;
+      padding: 64px 16px 32px;
     }
 
     #aviso-global {
@@ -56,16 +57,20 @@
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
       width: 100%;
       max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
     }
 
     .pagina-contenedor {
       position: relative;
       width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
       background-color: var(--fondo-pdf);
       overflow: hidden;
     }
@@ -85,22 +90,29 @@
       background: rgba(0, 123, 255, 0.3);
     }
 
-    /* Vista móvil (vertical) */
     @media (max-width: 600px) {
       body {
-        justify-content: center;
-        padding: 56px 0 24px 0;
-        min-height: 103dvh; /* Permite un ligero movimiento natural sin sentirse rígido */
+        align-items: center;
+        justify-content: flex-start;
+        padding: 56px 0 24px;
+        min-height: 100vh;
       }
 
       .visor-pdf {
+        width: 100%;
         max-width: 100%;
-        border-radius: 12px; /* Bordes ligeramente suavizados */
+        margin: 0 auto;
+        border-radius: 12px;
         box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+      }
+
+      .pagina-contenedor {
+        width: 100%;
       }
     }
   </style>
 </head>
+
 <body>
   <div id="aviso-global">
     <span id="aviso-texto"></span>
@@ -109,11 +121,13 @@
   <div class="visor-pdf" id="visor-pdf"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
   <script>
     const urlPdf = 'imagen.pdf';
     const urlAviso = './aviso.json';
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const contenedorPrincipal = document.getElementById('visor-pdf');
     const bannerAviso = document.getElementById('aviso-global');
@@ -121,9 +135,14 @@
 
     async function cargarAviso() {
       try {
-        const res = await fetch(`${urlAviso}?t=${Date.now()}`, { cache: 'no-store' });
+        const res = await fetch(`${urlAviso}?t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+
         if (!res.ok) return;
+
         const data = await res.json();
+
         if (data.activo && data.texto && data.texto.trim() !== '') {
           textoAviso.textContent = data.texto;
           bannerAviso.style.display = 'block';
@@ -142,8 +161,10 @@
 
       const canvas = document.createElement('canvas');
       const contexto = canvas.getContext('2d');
+
       canvas.width = viewportOriginal.width;
       canvas.height = viewportOriginal.height;
+
       divPagina.appendChild(canvas);
 
       await pagina.render({
@@ -157,11 +178,16 @@
 
       const actualizarCapaTexto = async () => {
         divTexto.innerHTML = '';
+
         const escalaPantalla = divPagina.clientWidth / viewportOriginal.width;
-        const viewportTexto = pagina.getViewport({ scale: 2 * escalaPantalla });
+        const viewportTexto = pagina.getViewport({
+          scale: 2 * escalaPantalla
+        });
+
         divTexto.style.setProperty('--scale-factor', 2 * escalaPantalla);
 
         const contenidoTexto = await pagina.getTextContent();
+
         pdfjsLib.renderTextLayer({
           textContentSource: contenidoTexto,
           container: divTexto,
@@ -175,8 +201,10 @@
     }
 
     cargarAviso();
+
     renderizarPDF().catch(() => {
-      contenedorPrincipal.innerHTML = '<p style="padding:20px;color:#b00;">No se pudo cargar imagen.pdf.</p>';
+      contenedorPrincipal.innerHTML =
+        '<p style="padding:20px;color:#b00;">No se pudo cargar imagen.pdf.</p>';
     });
   </script>
 </body>
